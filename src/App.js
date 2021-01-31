@@ -7,6 +7,10 @@ import baseSet from "./images/pixelheads-set.gif";
 
 function App() {
 	const [sprites, setSpriteSet] = useState(null);
+	const [hat, setHat] = useState("");
+	const [beard, setBeard] = useState("");
+	const [googles, setGoogles] = useState("");
+	const [pipe, setPipe] = useState("");
 
 	useEffect(() => {
 		const fetchBase = async () => {
@@ -19,19 +23,23 @@ function App() {
 				base,
 				coat,
 				wizardHat,
-				piratehat,
+				pirateHat,
 				cyborgHat,
 				googles,
 				smallBeard,
 				bigBeard,
 				pipe
-			] = frames.map(frame => transparentPurple(frame.patch));
+			] = frames.map(frame => {
+				console.log({ frame });
+				frame.transparentFrame = transparentPurple(frame.patch);
+				return frame;
+			});
 
 			setSpriteSet({
 				base,
 				coat,
 				wizardHat,
-				piratehat,
+				pirateHat,
 				cyborgHat,
 				googles,
 				smallBeard,
@@ -45,24 +53,70 @@ function App() {
 
 	return (
 		<div className="App">
-			<Canvas
-				width={24}
-				height={24}
-				draw={context => {
-					if (sprites) {
-						const { dims } = sprites.base;
+			{sprites && (
+				<div class={"canvas-container"}>
+					<Canvas
+						width={24}
+						height={24}
+						draw={context => {
+							context.width = 24;
+							context.height = 24;
+							context.scale = 1;
 
-						context.width = dims.width;
-						context.height = dims.height;
-						context.scale = 1;
+							context.clearRect(0, 0, 24, 24);
 
-						// drawBuffer(sprites.base);
+							drawBuffer(sprites.base, context);
+							hat && drawBuffer(sprites[hat], context);
+							googles && drawBuffer(sprites.googles, context);
+							beard && drawBuffer(sprites[beard], context);
+							pipe && drawBuffer(sprites.pipe, context);
+						}}
+					/>
+				</div>
+			)}
+			<div style={{ display: "flex", flexDirection: "column" }}>
+				<select
+					onChange={e => {
+						const { value } = e.target;
+						setHat(value);
+					}}
+				>
+					<option value={""}>No Hat</option>
+					<option value={"wizardHat"}>Wizard Hat</option>
+					<option value={"pirateHat"}>Pirate Hat</option>
+				</select>
 
-						context.clearRect(0, 0, dims.width, dims.height);
-						context.drawImage(frameCanvas, dims.left, dims.top);
-					}
-				}}
-			/>
+				<select
+					onChange={e => {
+						const { value } = e.target;
+						setBeard(value);
+					}}
+				>
+					<option value={""}>No Beard</option>
+					<option value={"smallBeard"}>Small Beard</option>
+					<option value={"bigBeard"}>Big Beard</option>
+				</select>
+
+				<select
+					onChange={e => {
+						const { value } = e.target;
+						setPipe(value !== "");
+					}}
+				>
+					<option value={""}>No pipe</option>
+					<option value={"pipe"}>With Pipe</option>
+				</select>
+
+				<select
+					onChange={e => {
+						const { value } = e.target;
+						setGoogles(value !== "");
+					}}
+				>
+					<option value={""}>No googles</option>
+					<option value={"googles"}>With Googles</option>
+				</select>
+			</div>
 		</div>
 	);
 }

@@ -21,7 +21,7 @@ export const transparentPurple = setTransparent([255, 0, 255]);
 export const frameCanvas = document.createElement("canvas");
 let _ctx = frameCanvas.getContext("2d");
 
-export const drawBuffer = (frame) => {
+export const drawBuffer = (frame, parentContext) => {
 	const { dims, transparentFrame } = frame;
 	const imageWidth = dims.width;
 	const imageHeight = dims.height;
@@ -35,4 +35,9 @@ export const drawBuffer = (frame) => {
 	frameImageData.data.set(transparentFrame);
 
 	_ctx.putImageData(frameImageData, 0, 0);
+
+	if (parentContext) {
+		const { dims } = frame;
+		parentContext.drawImage(frameCanvas, dims.left, dims.top);
+	}
 };
