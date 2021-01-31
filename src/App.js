@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { parseGIF, decompressFrames } from "gifuct-js";
 import Canvas from "./components/Canvas";
-import { drawBuffer, transparentPurple, frameCanvas } from "./utils/image";
-// import baseHead from "./images/base.gif";
+import { drawBuffer, transparentPurple } from "./utils/image";
 import baseSet from "./images/pixelheads-set.gif";
 
 function App() {
