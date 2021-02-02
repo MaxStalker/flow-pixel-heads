@@ -36,6 +36,23 @@ describe("Replicate Playground Accounts", () => {
 });
 
 describe("Deployment", () => {
+  test("Deploy FlowToken contract", async () => {
+    const name = "FlowToken";
+    const to = await getAccountAddress("FlowToken");
+
+    let result;
+    try {
+      result = await deployContractByName({
+        name,
+        to,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+
+    expect(result.errorMessage).toBe("");
+  });
+
   test("Deploy PixelHeads contract", async () => {
     const name = "PixelatedPersonas";
     const to = await getAccountAddress("Alice");
