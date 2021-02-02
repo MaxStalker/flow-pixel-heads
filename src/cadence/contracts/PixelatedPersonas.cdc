@@ -1,9 +1,21 @@
-import FungibleToken from 0xee82856bf20e2aa6
+import FlowToken from 0x01
 
 pub contract PixelatedPersonas{
 
     /// Event that is emitted, when new sprite layer is added to the database
     pub event PartAdded(type: String, id: Int)
+    pub event PaletteAdded(id: Int)
+
+
+    pub struct Cursor{
+        pub let start: Int
+        pub let amount: Int
+
+        init(start: Int, amount: Int){
+            self.start = start
+            self.amount = amount
+        }
+    }
 
     pub struct Offset{
         pub let x: UInt8
@@ -19,11 +31,13 @@ pub contract PixelatedPersonas{
         pub let type: String
         pub let pixelData: [UInt8]
         pub let paletteIndex: Int
+        pub let supply: Int
 
-        init(_ type: String, _ pixelData: [UInt8], _ paletteIndex: Int){
+        init(_ type: String, _ supply: Int, _ pixelData: [UInt8], _ paletteIndex: Int){
             self.type = type
             self.pixelData = pixelData
             self.paletteIndex = paletteIndex
+            self.supply = supply
         }
     }
 
@@ -41,24 +55,43 @@ pub contract PixelatedPersonas{
     pub var hats: [Part]
     pub var palettes: [Palette]
 
-    /// Heads logic
-    pub fun addHead(pixelData: [UInt8], paletteIndex: Int){
-        let type = "head"        
-        let id = self.heads.length
-        let part = Part(type, pixelData, paletteIndex)
+    /// This Vault will be used for staking and rewards distribution in the future.
+    /// For now we just initialize it
+    pub let creatorsVault: @FlowToken.Vault
+
+    /// Generalized method for adding parts
+    pub fun addPart(type: String, supply: Int, pixelData: [UInt8], paletteIndex: Int, feeVault: @FungibleToken.Vault): Int{
+
+        var id = 0
+        let part = Part(type, supply, pixelData, paletteIndex)
         
-        self.heads.append(part)
+        switch type {
+            case "head":
+                id = self.heads.length
+                self.heads.append(part)
+
+            case "hats":
+                id = self.hats.length
+                self.hats.append(part)
+
+            default:
+                log("Thank you for depositing to Creators Vault")
+        }
+        
+        self.creatorsVault.deposit(from: <- feeVault)
 
         emit PartAdded(type: type, id: id);        
+        return id
     }
 
-
     /// Palettes
-
-    pub fun registerPalette(palette: Palette, fee: FungibleToken.Vault): Int{
+    pub fun registerPalette(palette: Palette, feeVault: @FungibleToken.Vault): Int{
         let id = self.palettes.length
-        self.palettes.append(palette)
 
+        self.palettes.append(palette)
+        self.creatorsVault.deposit(from: <- feeVault)
+
+        emit PaletteAdded(id: id);  
         return id
     }
 
@@ -71,17 +104,25 @@ pub contract PixelatedPersonas{
         return self.heads[id] 
     }
 
-    // TODO: It's probably will be better to implement cursor and limiter here, but for now it will work just fine...
-    pub fun getAvailableHeads(): [Part]{
-        return self.heads
-    }
-
     pub fun getPaletteById(_ id: Int): Palette? {
         return self.palettes[id]
     }
 
     pub fun getAvailablePalettes(): [Palette] {
         return self.palettes
+    }
+
+    pub fun listAvailableParts(_ type: String): [Part?] {
+        switch type {
+            case "head":
+                return self.heads
+
+            case "hats":
+                return self.hats
+
+            default:
+                return []        
+        }
     }
 
     /// ============================================================================================================================
@@ -92,5 +133,7 @@ pub contract PixelatedPersonas{
         self.heads = []
         self.hats = []
         self.palettes = []
+
+        self.creatorsVault <- FlowToken.createEmptyVault()
     }
 }
